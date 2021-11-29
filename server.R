@@ -31,6 +31,7 @@ shinyServer(function(input, output) {
     selected <- reactiveVal(rep(0, nrow(mtcars)))
     selected2 <- reactiveVal(rep(0, nrow(mtcars)))
     abc <- reactiveVal(rep(0, nrow(mtcars)))
+    df_clk <- reactiveVal(data.frame(0,0))
     
     updater <- function(l1, l2) {
         changes <- ifelse(l1 == 0 | l2 != 2, F, T)
@@ -43,15 +44,16 @@ shinyServer(function(input, output) {
     
     #Evento: Graficos dinamicos, cambio de color
     #---------------------------------------------------------------------------
-    
-    #Grafica
+
     observeEvent(
         input$mbrush, {
             brushed <- brushedPoints(mtcars, input$mbrush, allRows = TRUE
             )$selected_
+            brushed2 <- brushedPoints(mtcars, input$mbrush)
             selected(replace((brushed | selected()),
                              (brushed | selected()) == TRUE, 1))
             abc(updater(selected2(), selected()))
+            output$mtcars_tbl <- renderDT(brushed2)
         }
     )
     
@@ -59,8 +61,11 @@ shinyServer(function(input, output) {
         input$clk, {
             cliked <- nearPoints(mtcars, input$clk, allRows = TRUE
             )$selected_
+            cliked2 <- nearPoints(mtcars, input$clk)
             selected((cliked | selected()) * 1)
             abc(updater(selected2(), selected()))
+            df_clk(data.frame(input$clk$x,input$clk$y))
+            output$mtcars_tbl <- renderDT(cliked2)
         }
     )
     
@@ -74,55 +79,47 @@ shinyServer(function(input, output) {
         }
     )
     
-    
-    #Grafica
     observeEvent(
         input$dclk, {
             selected(rep(0, nrow(mtcars)))
             selected2(rep(0, nrow(mtcars)))
             abc(updater(selected2(), selected()))
+            df_clk(data.frame(0,0))
+            output$mtcars_tbl <- renderDT(NULL)
         }
     )
+    
+    
     output$plot_click_option <- renderPlot({
         mtcars$sel <- abc()
         ggplot(mtcars, aes(wt, mpg)) +
-            geom_point(
-                aes(color = as.factor(sel))) +
+            geom_point(aes(color = as.factor(sel))) +
             scale_color_manual(
                 values = c("0" = "blue", "1" = "green", "2" = "gray"))
     }, res = 96)
 
-    #Tabla
     
     output$click_data <- renderPrint({
         list(click_xy = c(input$clk$x, input$clk$y),
             doble_click_xy = c(input$dclk$x, input$dclk$y),
             hover_xy = c(input$mhover$x, input$mhover$y),
             brush_xy = c(input$mbrush$xmin, input$mbrush$ymin,
-                         input$mbrush$xmax, input$mbrush$ymax,
-                         ncol = 2, byrow = TRUE))
+                         input$mbrush$xmax, input$mbrush$ymax)
+            )
     })
+    
     
     output$mtcars_tbl <- renderTable({
         df <- nearPoints(mtcars, input$clk, xvar = "wt", yvar = "mpg",
                          threshold = 10, maxpoints = 1)
         df
     })
-    print(a)
     
     
-    shinyApp(ui, server)
-    
-    a <- c(1, 0, 0, 1, 0)
-    b <- c(0, 0, 2, 2, 2)
-    updater <- function(l1, l2) {
-        changes <- ifelse(l1 == 0 | l2 != 2, F, T)
-        l1[changes] <- l2[changes]
-        changes <- ifelse(l1 == 0 | l2 != 0, T, F)
-        l1[changes] <- l2[changes]
-        return(l1)
-    }
-    updater(a, b)
+    #print(a)
+    #a <- c(1, 0, 0, 1, 0)
+    #b <- c(0, 0, 2, 2, 2)
+    #updater(a, b)
     
 
     #Evento: hacer click o brush y mostrar la informacion del punto en la tabla
@@ -168,27 +165,12 @@ shinyServer(function(input, output) {
     #        scale_colour_discrete(limits = c("TRUE", "FALSE"))
     #}, res = 96)
     
-    
-    #Prueba
-    #---------------------------------------------------------------------------
-    
-    
-
-    
-   
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
 
 })
+
+
+
+
+
 
     

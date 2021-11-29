@@ -26,27 +26,15 @@ shinyUI(fluidPage(
         ),
         
         
-        tabPanel('Graficas Dinamico',
+        tabPanel('Tarea: Graficas Dinamico',
                  plotOutput("plot_click_option",
                             click = "clk",
                             dblclick = "dclk",
                             brush = "mbrush",
                             hover = "mhover"),
                  verbatimTextOutput('click_data'),
-                 tableOutput('mtcars_tbl')
+                 DT::dataTableOutput("mtcars_tbl")
         ),
-
-        
-        #Prueba
-        tabPanel('Graficas-Tabla Dinamico',
-                 plotOutput("plot2_tabla",
-                            click = "clk",
-                            dblclick = "dclk",
-                            brush = "mbrush",
-                            hover = "mhover"),
-                 verbatimTextOutput('plot2_data'),
-                 tableOutput('tabl02')
-        )
         
     )
 ))
